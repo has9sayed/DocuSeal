@@ -1,0 +1,168 @@
+<div class="form-field-editor-container">
+  <div class="field-toolbar">
+    <h5 class="mb-3">Add Fields</h5>
+    <button class="field-toolbar-button" data-field-type="text">
+      <i class="bi bi-text-paragraph"></i> Text Field
+    </button>
+    <button class="field-toolbar-button" data-field-type="signature">
+      <i class="bi bi-pen"></i> Signature
+    </button>
+    <button class="field-toolbar-button" data-field-type="date">
+      <i class="bi bi-calendar"></i> Date
+    </button>
+    <button class="field-toolbar-button" data-field-type="checkbox">
+      <i class="bi bi-check-square"></i> Checkbox
+    </button>
+  </div>
+
+  <div class="form-field-editor">
+    <div class="pdf-container">
+      <%= pdf_preview(@document.pdf_file) if @document.pdf_file.attached? %>
+    </div>
+    
+    <div id="field-layer" class="field-layer">
+      <% @document.form_fields.each do |field| %>
+        <div class="form-field" 
+             data-type="<%= field.field_type %>"
+             data-field-id="<%= field.id %>"
+             style="transform: translate(<%= field.position_x %>px, <%= field.position_y %>px)">
+          <div class="field-content">
+            <div class="field-label"><%= field.label %></div>
+            <div class="field-type"><%= field.field_type %></div>
+          </div>
+          <div class="field-resize-handle"></div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="field-properties" style="display: none;">
+    <h5 class="mb-3">Field Properties</h5>
+    <form id="field-properties-form">
+      <div class="field-property">
+        <label for="field-label">Label</label>
+        <input type="text" id="field-label" name="label" class="form-control">
+      </div>
+
+      <div class="field-property">
+        <label for="field-required">Required</label>
+        <select id="field-required" name="required" class="form-select">
+          <option value="false">No</option>
+          <option value="true">Yes</option>
+        </select>
+      </div>
+
+      <div class="field-property">
+        <label>Position</label>
+        <div class="row">
+          <div class="col">
+            <input type="number" name="position_x" class="form-control" placeholder="X">
+          </div>
+          <div class="col">
+            <input type="number" name="position_y" class="form-control" placeholder="Y">
+          </div>
+        </div>
+      </div>
+
+      <div class="field-property">
+        <label>Size</label>
+        <div class="row">
+          <div class="col">
+            <input type="number" name="width" class="form-control" placeholder="Width">
+          </div>
+          <div class="col">
+            <input type="number" name="height" class="form-control" placeholder="Height">
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-4">
+        <button type="submit" class="btn btn-primary w-100">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="fixed-bottom p-4 bg-white border-top">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center">
+      <button class="btn btn-outline-secondary" onclick="history.back()">
+        Cancel
+      </button>
+      <%= form_tag save_fields_document_path(@document), method: :post, class: 'd-inline' do %>
+        <%= hidden_field_tag :fields_data, '', id: 'fields-data-input' %>
+        <%= submit_tag 'Save Document', class: 'btn btn-primary' %>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<%= content_for :scripts do %>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const editor = new FormFieldEditor(
+        document.querySelector('.form-field-editor'),
+        document.querySelector('.pdf-container')
+      );
+
+      // Initialize toolbar buttons
+      document.querySelectorAll('.field-toolbar-button').forEach(button => {
+        button.addEventListener('click', () => {
+          const type = button.dataset.fieldType;
+          editor.addField(type, `New ${type} field`);
+        });
+      });
+
+      // Initialize properties panel
+      const propertiesPanel = document.querySelector('.field-properties');
+      const propertiesForm = document.getElementById('field-properties-form');
+
+      editor.container.addEventListener('field:selected', (e) => {
+        const { field, data } = e.detail;
+        propertiesPanel.style.display = 'block';
+        
+        // Update form values
+        propertiesForm.elements.label.value = data.label;
+        propertiesForm.elements.required.value = data.required || 'false';
+        propertiesForm.elements.position_x.value = data.position.x;
+        propertiesForm.elements.position_y.value = data.position.y;
+        propertiesForm.elements.width.value = data.size.width;
+        propertiesForm.elements.height.value = data.size.height;
+      });
+
+      editor.container.addEventListener('field:deselected', () => {
+        propertiesPanel.style.display = 'none';
+      });
+
+      // Handle form submission
+      propertiesForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const field = editor.selectedField;
+        if (!field) return;
+
+        const fieldData = editor.getFieldData(field);
+        fieldData.label = propertiesForm.elements.label.value;
+        fieldData.required = propertiesForm.elements.required.value === 'true';
+        fieldData.position = {
+          x: parseInt(propertiesForm.elements.position_x.value),
+          y: parseInt(propertiesForm.elements.position_y.value)
+        };
+        fieldData.size = {
+          width: parseInt(propertiesForm.elements.width.value),
+          height: parseInt(propertiesForm.elements.height.value)
+        };
+
+        editor.updateFieldPosition(field);
+      });
+
+      // Handle saving all fields
+      document.querySelector('form').addEventListener('submit', function() {
+        const fieldsData = Array.from(editor.fields.entries()).map(([id, data]) => ({
+          id: id,
+          ...data
+        }));
+        document.getElementById('fields-data-input').value = JSON.stringify(fieldsData);
+      });
+    });
+  </script>
+<% end %> 
