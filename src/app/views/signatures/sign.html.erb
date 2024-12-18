@@ -1,0 +1,143 @@
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-header">
+          <h4 class="mb-0">Sign Document: <%= @document.title %></h4>
+        </div>
+        <div class="card-body">
+          <div class="mb-4">
+            <div class="pdf-preview ratio ratio-16x9 mb-4">
+              <%= pdf_preview(@document.pdf_file) if @document.pdf_file.attached? %>
+            </div>
+          </div>
+
+          <div class="signature-section">
+            <h5 class="mb-3">Your Signature</h5>
+            
+            <div class="signature-pad-container mb-3">
+              <canvas id="signaturePad" class="signature-pad"></canvas>
+              <div class="signature-pad-footer">
+                <small class="text-muted">Sign above using your mouse or touch screen</small>
+                <button type="button" class="btn btn-link btn-sm" id="clearSignature">
+                  Clear
+                </button>
+              </div>
+            </div>
+
+            <%= form_tag sign_signature_path(@signature.signing_token), method: :post, id: 'signatureForm' do %>
+              <%= hidden_field_tag :signature_data, '', id: 'signatureData' %>
+              
+              <div class="form-check mb-3">
+                <%= check_box_tag :agree_terms, '1', false, class: 'form-check-input', required: true %>
+                <label class="form-check-label" for="agree_terms">
+                  I agree to electronically sign this document and confirm that this is my legal signature.
+                </label>
+              </div>
+
+              <div class="d-flex justify-content-between align-items-center">
+                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#declineModal">
+                  Decline to Sign
+                </button>
+                <%= submit_tag 'Complete Signing', class: 'btn btn-primary', id: 'submitSignature' %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Decline Modal -->
+<div class="modal fade" id="declineModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Decline to Sign</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <%= form_tag decline_signature_path(@signature.signing_token), method: :post do %>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="decline_reason" class="form-label">Please provide a reason for declining:</label>
+            <%= text_area_tag :decline_reason, '', class: 'form-control', rows: 3, required: true %>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <%= submit_tag 'Confirm Decline', class: 'btn btn-danger' %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<%= content_for :styles do %>
+  <style>
+    .signature-pad-container {
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      padding: 16px;
+      background: #fff;
+    }
+
+    .signature-pad {
+      width: 100%;
+      height: 200px;
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+    }
+
+    .signature-pad-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+    }
+  </style>
+<% end %>
+
+<%= content_for :scripts do %>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const canvas = document.getElementById('signaturePad');
+      const signaturePad = new SignaturePad(canvas, {
+        penColor: '#000000',
+        backgroundColor: '#f8f9fa'
+      });
+
+      // Clear signature button
+      document.getElementById('clearSignature').addEventListener('click', () => {
+        signaturePad.clear();
+      });
+
+      // Form submission
+      document.getElementById('signatureForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        if (signaturePad.isEmpty()) {
+          alert('Please provide your signature before submitting.');
+          return;
+        }
+
+        // Get signature data
+        const signatureData = signaturePad.toDataURL();
+        document.getElementById('signatureData').value = signatureData;
+
+        // Submit the form
+        this.submit();
+      });
+
+      // Resize handling
+      window.addEventListener('resize', () => {
+        const ratio = Math.max(window.devicePixelRatio || 1, 1);
+        canvas.width = canvas.offsetWidth * ratio;
+        canvas.height = canvas.offsetHeight * ratio;
+        canvas.getContext('2d').scale(ratio, ratio);
+        signaturePad.clear();
+      });
+    });
+  </script>
+<% end %> 

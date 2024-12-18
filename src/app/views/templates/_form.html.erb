@@ -1,0 +1,112 @@
+<%= form_with(model: template, local: true, class: 'needs-validation', html: { multipart: true }) do |f| %>
+  <% if template.errors.any? %>
+    <div class="alert alert-danger">
+      <h5><%= pluralize(template.errors.count, "error") %> prevented this template from being saved:</h5>
+      <ul class="mb-0">
+        <% template.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="card">
+    <div class="card-body">
+      <div class="mb-3">
+        <%= f.label :name, class: 'form-label' %>
+        <%= f.text_field :name, class: 'form-control', required: true %>
+      </div>
+
+      <div class="mb-3">
+        <%= f.label :description, class: 'form-label' %>
+        <%= f.text_area :description, class: 'form-control', rows: 3 %>
+        <div class="form-text">Provide a brief description of what this template is used for.</div>
+      </div>
+
+      <div class="mb-3">
+        <%= f.label :template_file, 'PDF Template', class: 'form-label' %>
+        <% if template.template_file.attached? %>
+          <div class="mb-2">
+            <div class="d-flex align-items-center">
+              <i class="bi bi-file-pdf text-danger me-2"></i>
+              <span><%= template.template_file.filename %></span>
+              <%= link_to 'Remove', remove_file_template_path(template),
+                  method: :delete,
+                  class: 'btn btn-link btn-sm text-danger ms-2',
+                  data: { confirm: 'Are you sure you want to remove this file?' } %>
+            </div>
+          </div>
+        <% end %>
+        <%= f.file_field :template_file, 
+            class: 'form-control',
+            accept: 'application/pdf',
+            required: !template.template_file.attached? %>
+        <div class="form-text">Upload a PDF file that will serve as the base for this template.</div>
+      </div>
+
+      <div class="mb-3">
+        <div class="form-check form-switch">
+          <%= f.check_box :is_public, class: 'form-check-input' %>
+          <%= f.label :is_public, class: 'form-check-label' do %>
+            Make this template public
+            <div class="form-text">Public templates can be used by other users in your organization.</div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <% if template.persisted? && template.template_file.attached? %>
+    <div class="card mt-4">
+      <div class="card-header">
+        <h5 class="card-title mb-0">Field Definitions</h5>
+      </div>
+      <div class="card-body">
+        <div id="field-definitions">
+          <%= f.fields_for :field_definitions do |field_form| %>
+            <%= render 'field_definition_fields', f: field_form %>
+          <% end %>
+
+          <div class="links mb-3">
+            <%= link_to_add_association 'Add Field', f, :field_definitions,
+                class: 'btn btn-outline-primary btn-sm',
+                data: {
+                  association_insertion_node: '#field-definitions',
+                  association_insertion_method: 'append'
+                } %>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="mt-4">
+    <% if template.persisted? %>
+      <%= link_to 'Cancel', template_path(template), class: 'btn btn-outline-secondary' %>
+    <% else %>
+      <%= link_to 'Cancel', templates_path, class: 'btn btn-outline-secondary' %>
+    <% end %>
+    <%= f.submit class: 'btn btn-primary float-end' %>
+  </div>
+<% end %>
+
+<% content_for :scripts do %>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize nested form fields
+      $('#field-definitions').on('cocoon:after-insert', function(e, insertedItem) {
+        // Initialize any JavaScript components in the newly added field
+      });
+
+      // Form validation
+      const form = document.querySelector('form');
+      form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+      });
+    });
+  </script>
+<% end %> 

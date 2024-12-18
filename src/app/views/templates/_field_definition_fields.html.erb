@@ -1,0 +1,88 @@
+<div class="nested-fields card mb-3">
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-6">
+        <div class="mb-3">
+          <%= f.label :label, class: 'form-label' %>
+          <%= f.text_field :label, class: 'form-control', required: true %>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="mb-3">
+          <%= f.label :field_type, class: 'form-label' %>
+          <%= f.select :field_type, 
+              FormField.field_types.keys.map { |t| [t.humanize, t] },
+              { include_blank: 'Select field type' },
+              { class: 'form-select', required: true } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-3">
+        <div class="mb-3">
+          <%= f.label :position_x, 'X Position', class: 'form-label' %>
+          <%= f.number_field :position_x, 
+              class: 'form-control',
+              required: true,
+              step: 'any',
+              min: 0 %>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="mb-3">
+          <%= f.label :position_y, 'Y Position', class: 'form-label' %>
+          <%= f.number_field :position_y,
+              class: 'form-control',
+              required: true,
+              step: 'any',
+              min: 0 %>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="mb-3">
+          <%= f.label :width, class: 'form-label' %>
+          <%= f.number_field :width,
+              class: 'form-control',
+              step: 'any',
+              min: 0 %>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="mb-3">
+          <%= f.label :height, class: 'form-label' %>
+          <%= f.number_field :height,
+              class: 'form-control',
+              step: 'any',
+              min: 0 %>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="mb-3">
+          <%= f.label :options, 'Additional Options', class: 'form-label' %>
+          <%= f.text_area :options,
+              class: 'form-control',
+              rows: 2,
+              placeholder: 'Enter options in JSON format (optional)' %>
+          <div class="form-text">
+            For dropdown fields, specify options as: {"options": ["Option 1", "Option 2"]}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center">
+      <div class="form-check">
+        <%= f.check_box :required, class: 'form-check-input' %>
+        <%= f.label :required, class: 'form-check-label' %>
+      </div>
+
+      <%= link_to_remove_association 'Remove Field', f, 
+          class: 'btn btn-outline-danger btn-sm',
+          data: { confirm: 'Are you sure you want to remove this field?' } %>
+    </div>
+  </div>
+</div> 

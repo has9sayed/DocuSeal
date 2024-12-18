@@ -1,0 +1,95 @@
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Templates</h1>
+    <%= link_to new_template_path, class: 'btn btn-primary' do %>
+      <i class="bi bi-plus-lg"></i> New Template
+    <% end %>
+  </div>
+
+  <div class="row">
+    <% @templates.each do |template| %>
+      <div class="col-md-4 mb-4">
+        <div class="card h-100">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <h5 class="card-title mb-0"><%= template.name %></h5>
+              <% if template.is_public %>
+                <span class="badge bg-success">Public</span>
+              <% end %>
+            </div>
+            
+            <p class="card-text text-muted">
+              <%= template.description&.truncate(100) %>
+            </p>
+
+            <div class="mb-3">
+              <small class="text-muted">
+                <i class="bi bi-file-text"></i>
+                <%= pluralize(template.documents_count, 'document') %> created
+              </small>
+            </div>
+
+            <div class="d-flex gap-2">
+              <%= link_to new_document_path(template_id: template.id), 
+                  class: 'btn btn-outline-primary btn-sm' do %>
+                <i class="bi bi-file-earmark-plus"></i> Use Template
+              <% end %>
+
+              <div class="dropdown">
+                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" 
+                        type="button" 
+                        data-bs-toggle="dropdown">
+                  Actions
+                </button>
+                <ul class="dropdown-menu">
+                  <li>
+                    <%= link_to edit_template_path(template), class: 'dropdown-item' do %>
+                      <i class="bi bi-pencil"></i> Edit
+                    <% end %>
+                  </li>
+                  <li>
+                    <%= link_to template_path(template), class: 'dropdown-item' do %>
+                      <i class="bi bi-eye"></i> View Details
+                    <% end %>
+                  </li>
+                  <li>
+                    <%= link_to duplicate_template_path(template), 
+                        method: :post,
+                        class: 'dropdown-item' do %>
+                      <i class="bi bi-files"></i> Duplicate
+                    <% end %>
+                  </li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li>
+                    <%= link_to template_path(template),
+                        method: :delete,
+                        class: 'dropdown-item text-danger',
+                        data: { confirm: 'Are you sure? This cannot be undone.' } do %>
+                      <i class="bi bi-trash"></i> Delete
+                    <% end %>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="card-footer text-muted">
+            <small>Last updated <%= time_ago_in_words(template.updated_at) %> ago</small>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <% if @templates.empty? %>
+    <div class="text-center py-5">
+      <div class="mb-3">
+        <i class="bi bi-file-earmark-text display-1 text-muted"></i>
+      </div>
+      <h3>No Templates Yet</h3>
+      <p class="text-muted">Create your first template to start generating documents quickly.</p>
+      <%= link_to new_template_path, class: 'btn btn-primary mt-3' do %>
+        <i class="bi bi-plus-lg"></i> Create Template
+      <% end %>
+    </div>
+  <% end %>
+</div> 

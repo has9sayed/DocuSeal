@@ -1,0 +1,25 @@
+{
+       "name": "DocuSeal Development Environment",
+       "build": {
+           "dockerfile": "Dockerfile"
+       },
+       "features": {
+           "ghcr.io/devcontainers/features/ruby:1": {
+               "version": "3.2"
+           },
+           "ghcr.io/devcontainers/features/node:1": {}
+       },
+       "customizations": {
+           "vscode": {
+               "extensions": [
+                   "rebornix.ruby",
+                   "castwide.solargraph",
+                   "kaiwood.endwise",
+                   "misogi.ruby-rubocop"
+               ]
+           }
+       },
+       "forwardPorts": [3000],
+       "postCreateCommand": "bundle install",
+       "remoteUser": "vscode"
+   }
