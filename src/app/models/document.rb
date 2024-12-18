@@ -16,11 +16,19 @@ class Document < ApplicationRecord
   }
 
   def generate_pdf
-    # PDF generation logic will be implemented here
+    pdf_service = PdfGeneratorService.new(self)
+    pdf_service.generate
   end
 
   def send_for_signature
-    # Logic for sending document for signature
+    return false unless pdf_file.attached?
+    
+    update(status: :pending_signatures)
+    Notification.notify_signature_request(signatures.last) if signatures.any?
+    true
+  rescue StandardError => e
+    Rails.logger.error "Failed to send document for signature: #{e.message}"
+    false
   end
 
   def complete_signing
