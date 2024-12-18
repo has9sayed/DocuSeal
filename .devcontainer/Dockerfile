@@ -1,22 +1,13 @@
 FROM mcr.microsoft.com/devcontainers/ruby:3.2
 
-# Install additional OS packages
+# Install PostgreSQL client and development packages
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
-    && apt-get -y install --no-install-recommends \
-    postgresql-client \
-    libpq-dev \
-    nodejs \
-    npm \
-    git \
-    curl \
-    build-essential \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get -y install --no-install-recommends postgresql-client libpq-dev \
+    && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
-# Install specific Ruby version and bundler
+# Install bundler
 RUN gem install bundler
 
-# Create workspace directory
+# Create app directory
 RUN mkdir -p /workspaces/DocuSeal
-
 WORKDIR /workspaces/DocuSeal
